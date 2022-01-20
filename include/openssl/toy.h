@@ -29,6 +29,7 @@ int OSSL_TOY_CTX_set0_bios(OSSL_TOY_CTX *ctx, BIO *rbio, BIO *wbio);
 OSSL_TOY_CONN *OSSL_TOY_CTX_get0_connection(OSSL_TOY_CTX *ctx, uint32_t id);
 int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
                                 OSSL_TOY_STREAM **stream);
+int OSSL_TOY_CTX_handle_timeout(struct timeval *nxttimeout, int *havenewtimeout);
 
 OSSL_TOY_STREAM *OSSL_TOY_CONN_get0_stream(OSSL_TOY_CONN *conn, uint32_t streamid);
 uint32_t OSSL_TOY_CONN_get_id(OSSL_TOY_CONN *conn);

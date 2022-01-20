@@ -12,6 +12,8 @@
 #include <openssl/rand.h>
 #include <openssl/bio.h>
 #include <openssl/toy.h>
+#include <time.h>
+#include <sys/time.h>
 
 struct ossl_toy_packet_st {
     /* The connection id */
@@ -220,6 +222,21 @@ int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
  err:
     ossl_toy_packet_free(packet);
     return ret;
+}
+
+int OSSL_TOY_CTX_handle_timeout(struct timeval *nxttimeout, int *havenewtimeout)
+{
+    struct timeval timenow;
+
+
+    *havenewtimeout = 1;
+
+    /* Get current time */
+    gettimeofday(&timenow, NULL);
+    timenow.tv_sec += 2;
+    *nxttimeout = timenow;
+
+    return 1;
 }
 
 void ossl_toy_conn_free(OSSL_TOY_CONN *conn)

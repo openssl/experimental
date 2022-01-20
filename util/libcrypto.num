@@ -5445,3 +5445,4 @@ OSSL_TOY_CONN_set0_peer                 ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_STREAM_read                    ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_STREAM_write                   ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_STREAM_get_id                  ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_handle_timeout             ?	3_1_0	EXIST::FUNCTION:
