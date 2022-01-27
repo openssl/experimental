@@ -3297,7 +3297,8 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
         goto err;
 
     /* No compression for DTLS */
-    if (!(meth->ssl3_enc->enc_flags & SSL_ENC_FLAG_DTLS))
+    if (meth->ssl3_enc != NULL
+            && !(meth->ssl3_enc->enc_flags & SSL_ENC_FLAG_DTLS))
         ret->comp_methods = SSL_COMP_get_compression_methods();
 
     ret->max_send_fragment = SSL3_RT_MAX_PLAIN_LENGTH;
@@ -3382,6 +3383,12 @@ SSL_CTX *SSL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq,
     ret->num_tickets = 2;
 
     ssl_ctx_system_config(ret);
+
+    if (meth->ssl_ctx_new != NULL) {
+        ret->ctx_meth_data = meth->ssl_ctx_new(ret);
+        if (ret->ctx_meth_data == NULL)
+            goto err2;
+    }
 
     return ret;
  err:

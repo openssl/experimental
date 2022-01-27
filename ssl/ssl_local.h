@@ -517,6 +517,7 @@ struct ssl_method_st {
     int (*ssl_version) (void);
     long (*ssl_callback_ctrl) (SSL *s, int cb_id, void (*fp) (void));
     long (*ssl_ctx_callback_ctrl) (SSL_CTX *s, int cb_id, void (*fp) (void));
+    void *(*ssl_ctx_new) (SSL_CTX *ctx);
 };
 
 /*
@@ -1202,6 +1203,9 @@ struct ssl_ctx_st {
     uint32_t disabled_mac_mask;
     uint32_t disabled_mkey_mask;
     uint32_t disabled_auth_mask;
+
+    /* SSL_METHOD specific SSL_CTX data */
+    void *ctx_meth_data;
 };
 
 typedef struct cert_pkey_st CERT_PKEY;
@@ -1796,6 +1800,9 @@ struct ssl_st {
      */
     const struct sigalg_lookup_st **shared_sigalgs;
     size_t shared_sigalgslen;
+
+    /* SSL_METHOD specific data */
+    void *meth_data;
 };
 
 /*
@@ -2350,6 +2357,8 @@ const SSL_METHOD *func_name(void)  \
         return &func_name##_data; \
         }
 
+#define TOY_PROTOCOL_VERSION_1      0x020001
+
 struct openssl_ssl_test_functions {
     int (*p_ssl_init_wbio_buffer) (SSL *s);
     int (*p_ssl3_setup_buffers) (SSL *s);
@@ -2881,5 +2890,18 @@ static ossl_unused ossl_inline void ssl_tsan_counter(const SSL_CTX *ctx,
         ssl_tsan_unlock(ctx);
     }
 }
+
+/* Toy protocol */
+int ossl_toy_new(SSL *s);
+void ossl_toy_free(SSL *s);
+int ossl_toy_clear(SSL *s);
+void *ossl_toy_client_ctx_new(SSL_CTX *ctx);
+void *ossl_toy_server_ctx_new(SSL_CTX *ctx);
+int ossl_toy_read(SSL *s, void *buf, size_t len, size_t *readbytes);
+int ossl_toy_write(SSL *s, const void *buf, size_t len, size_t *written);
+int ossl_toy_num_ciphers(void);
+long ossl_toy_ctrl(SSL *s, int cmd, long larg, void *parg);
+int ossl_toy_connect(SSL *s);
+int ossl_toy_renegotiate_check(SSL *s, int initok);
 
 #endif
