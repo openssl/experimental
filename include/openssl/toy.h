@@ -25,7 +25,10 @@ typedef struct ossl_toy_ctx_st OSSL_TOY_CTX;
 
 OSSL_TOY_CTX *OSSL_TOY_CTX_new(OSSL_LIB_CTX *libctx, int isserver);
 void OSSL_TOY_CTX_free(OSSL_TOY_CTX *ctx);
-int OSSL_TOY_CTX_set0_bios(OSSL_TOY_CTX *ctx, BIO *rbio, BIO *wbio);
+int OSSL_TOY_CTX_set0_rbio(OSSL_TOY_CTX *ctx, BIO *rbio);
+int OSSL_TOY_CTX_set0_wbio(OSSL_TOY_CTX *ctx, BIO *wbio);
+BIO *OSSL_TOY_CTX_get0_rbio(OSSL_TOY_CTX *ctx);
+BIO *OSSL_TOY_CTX_get0_wbio(OSSL_TOY_CTX *ctx);
 OSSL_TOY_CONN *OSSL_TOY_CTX_get0_connection(OSSL_TOY_CTX *ctx, uint32_t id);
 int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
                                 OSSL_TOY_STREAM **stream);

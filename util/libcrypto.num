@@ -5436,7 +5436,6 @@ BN_signed_native2bn                     ?	3_1_0	EXIST::FUNCTION:
 BN_signed_bn2native                     ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_new                        ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_free                       ?	3_1_0	EXIST::FUNCTION:
-OSSL_TOY_CTX_set0_bios                  ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_get0_connection            ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_process_packet             ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CONN_get0_stream               ?	3_1_0	EXIST::FUNCTION:
@@ -5446,3 +5445,7 @@ OSSL_TOY_STREAM_read                    ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_STREAM_write                   ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_STREAM_get_id                  ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_handle_timeout             ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_set0_rbio                  ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_set0_wbio                  ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_get0_rbio                  ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_get0_wbio                  ?	3_1_0	EXIST::FUNCTION:

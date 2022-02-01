@@ -126,7 +126,8 @@ opthelp:
         BIO_printf(bio_err, "Failed to create toy context\n");
         goto err;
     }
-    OSSL_TOY_CTX_set0_bios(ctx, rbio, wbio);
+    OSSL_TOY_CTX_set0_rbio(ctx, rbio);
+    OSSL_TOY_CTX_set0_wbio(ctx, wbio);
     rbio = wbio = NULL;
 
     conn = OSSL_TOY_CTX_get0_connection(ctx, OSSL_TOY_NULL_CONNECTION_ID);

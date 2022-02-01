@@ -105,15 +105,32 @@ void OSSL_TOY_CTX_free(OSSL_TOY_CTX *ctx)
     OPENSSL_free(ctx);
 }
 
-int OSSL_TOY_CTX_set0_bios(OSSL_TOY_CTX *ctx, BIO *rbio, BIO *wbio)
+BIO *OSSL_TOY_CTX_get0_rbio(OSSL_TOY_CTX *ctx)
+{
+    return ctx->rbio;
+}
+
+BIO *OSSL_TOY_CTX_get0_wbio(OSSL_TOY_CTX *ctx)
+{
+    return ctx->wbio;
+}
+
+int OSSL_TOY_CTX_set0_rbio(OSSL_TOY_CTX *ctx, BIO *rbio)
 {
     BIO_free(ctx->rbio);
-    BIO_free(ctx->wbio);
     ctx->rbio = rbio;
+
+    return 1;
+}
+
+int OSSL_TOY_CTX_set0_wbio(OSSL_TOY_CTX *ctx, BIO *wbio)
+{
+    BIO_free(ctx->wbio);
     ctx->wbio = wbio;
 
     return 1;
 }
+
 
 OSSL_TOY_CONN *OSSL_TOY_CTX_get0_connection(OSSL_TOY_CTX *ctx, uint32_t id)
 {
