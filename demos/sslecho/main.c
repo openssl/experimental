@@ -29,12 +29,12 @@ typedef unsigned char   bool;
  */
 static volatile bool    server_running = true;
 
-int create_socket(bool isServer) {
+int create_socket(bool isServer, bool isTls) {
     int s;
     int optval = 1;
     struct sockaddr_in addr;
 
-    s = socket(AF_INET, SOCK_STREAM, 0);
+    s = socket(AF_INET, isTls ? SOCK_STREAM : SOCK_DGRAM, 0);
     if (s < 0) {
         perror("Unable to create socket");
         exit(EXIT_FAILURE);
@@ -66,14 +66,16 @@ int create_socket(bool isServer) {
     return s;
 }
 
-SSL_CTX* create_context(bool isServer) {
+SSL_CTX* create_context(bool isServer, bool isTls) {
     const SSL_METHOD *method;
     SSL_CTX *ctx;
 
     if (isServer)
         method = TLS_server_method();
-    else
+    else if (isTls)
         method = TLS_client_method();
+    else
+        method = TOY_client_method();
 
     ctx = SSL_CTX_new(method);
     if (ctx == NULL) {
@@ -111,15 +113,16 @@ void configure_client_context(SSL_CTX *ctx) {
 }
 
 void usage() {
-    printf("Usage: sslecho s\n");
+    printf("Usage: sslecho [tls|toy] s\n");
     printf("       --or--\n");
-    printf("       sslecho c ip\n");
+    printf("       sslecho [tls|toy] c ip\n");
     printf("       c=client, s=server, ip=dotted ip of server\n");
     exit(1);
 }
 
 int main(int argc, char **argv) {
     bool isServer;
+    bool isTls = false;
     int result;
 
     SSL_CTX *ssl_ctx = NULL;
@@ -146,22 +149,30 @@ int main(int argc, char **argv) {
     __TIME__);
 
     /* Need to know if client or server */
-    if (argc < 2) {
+    if (argc < 3) {
         usage();
         /* NOTREACHED */
     }
-    isServer = (argv[1][0] == 's') ? true : false;
+    if (strcmp(argv[1], "tls") == 0)
+        isTls = true;
+    else if (strcmp(argv[1], "toy") != 0)
+        usage();
+    isServer = (argv[2][0] == 's') ? true : false;
     /* If client get remote server address (could be 127.0.0.1) */
     if (!isServer) {
-        if (argc != 3) {
+        if (argc != 4) {
             usage();
             /* NOTREACHED */
         }
-        rem_server_ip = argv[2];
+        rem_server_ip = argv[3];
     }
 
+    /* We don't support TOY protocol on the server yet */
+    if (isServer && !isTls)
+        usage();
+
     /* Create context used by both client and server */
-    ssl_ctx = create_context(isServer);
+    ssl_ctx = create_context(isServer, isTls);
 
     /* If server */
     if (isServer) {
@@ -172,7 +183,7 @@ int main(int argc, char **argv) {
         configure_server_context(ssl_ctx);
 
         /* Create server socket; will bind with server port and listen */
-        server_skt = create_socket(true);
+        server_skt = create_socket(true, isTls);
 
         /*
          * Loop to accept clients.
@@ -246,7 +257,7 @@ int main(int argc, char **argv) {
         configure_client_context(ssl_ctx);
 
         /* Create "bare" socket */
-        client_skt = create_socket(false);
+        client_skt = create_socket(false, isTls);
         /* Set up connect address */
         addr.sin_family = AF_INET;
         inet_pton(AF_INET, rem_server_ip, &addr.sin_addr.s_addr);
