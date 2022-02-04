@@ -23,6 +23,12 @@ static ossl_inline OSSL_TOY_CONN *ossl_toy_get_conn(SSL *s)
 
 int ossl_toy_new(SSL *s)
 {
+    OSSL_TOY_CTX *ctx = ossl_toy_get_ctx(s);
+
+    /* Nothing to be done if we are a server */
+    if (OSSL_TOY_CTX_is_server(ctx))
+        return 1;
+
     s->meth_data = OSSL_TOY_CTX_get0_connection(ossl_toy_get_ctx(s),
                                                 OSSL_TOY_NULL_CONNECTION_ID);
     return s->meth_data != NULL;
@@ -58,14 +64,14 @@ int ossl_toy_read(SSL *s, void *buf, size_t len, size_t *readbytes)
     OSSL_TOY_STREAM *stream = OSSL_TOY_CONN_get0_stream(ossl_toy_get_conn(s), 0);
 
     if (!OSSL_TOY_STREAM_read(stream, buf, len, readbytes)) {
-        int ret;
+        int ret, isnew;
         OSSL_TOY_STREAM *tmpstream;
         OSSL_TOY_CONN *conn;
 
         /* See if we can get more data */
         do {
             ret = OSSL_TOY_CTX_process_packet(ossl_toy_get_ctx(s), &conn,
-                                              &tmpstream);
+                                              &tmpstream, &isnew);
         } while (ret > 0 && stream != tmpstream);
         return ret > 0 && OSSL_TOY_STREAM_read(stream, buf, len, readbytes);
     }
@@ -107,6 +113,35 @@ int ossl_toy_connect(SSL *s)
     }
 
     return 1;
+}
+
+int ossl_toy_accept(SSL *s)
+{
+    OSSL_TOY_CTX *ctx = ossl_toy_get_ctx(s);
+    OSSL_TOY_CONN *conn = NULL;
+    OSSL_TOY_STREAM *stream = NULL;
+    int isnew, ret;
+
+    if (s->rbio != OSSL_TOY_CTX_get0_rbio(ctx)) {
+        if (!BIO_up_ref(s->rbio))
+            return -1;
+        OSSL_TOY_CTX_set0_rbio(ctx, s->rbio);
+    }
+
+    if (s->wbio != OSSL_TOY_CTX_get0_wbio(ctx)) {
+        if (!BIO_up_ref(s->wbio))
+            return -1;
+        OSSL_TOY_CTX_set0_wbio(ctx, s->wbio);
+    }
+
+    do {
+        ret = OSSL_TOY_CTX_process_packet(ctx, &conn, &stream, &isnew);
+    } while(ret > 0 && !isnew);
+
+    if (ret > 0)
+        s->meth_data = conn;
+
+    return ret;
 }
 
 int ossl_toy_renegotiate_check(SSL *s, int initok)

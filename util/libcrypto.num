@@ -5449,3 +5449,4 @@ OSSL_TOY_CTX_set0_rbio                  ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_set0_wbio                  ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_get0_rbio                  ?	3_1_0	EXIST::FUNCTION:
 OSSL_TOY_CTX_get0_wbio                  ?	3_1_0	EXIST::FUNCTION:
+OSSL_TOY_CTX_is_server                  ?	3_1_0	EXIST::FUNCTION:

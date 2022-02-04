@@ -51,13 +51,12 @@ int create_socket(bool isServer, bool isTls) {
             perror("setsockopt(SO_REUSEADDR) failed");
             exit(EXIT_FAILURE);
         }
-
         if (bind(s, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
             perror("Unable to bind");
             exit(EXIT_FAILURE);
         }
 
-        if (listen(s, 1) < 0) {
+        if (isTls && listen(s, 1) < 0) {
             perror("Unable to listen");
             exit(EXIT_FAILURE);
         }
@@ -70,12 +69,16 @@ SSL_CTX* create_context(bool isServer, bool isTls) {
     const SSL_METHOD *method;
     SSL_CTX *ctx;
 
-    if (isServer)
-        method = TLS_server_method();
-    else if (isTls)
+    if (isServer) {
+        if (isTls)
+            method = TLS_server_method();
+        else
+            method = TOY_server_method();
+    } else if (isTls) {
         method = TLS_client_method();
-    else
+    } else {
         method = TOY_client_method();
+    }
 
     ctx = SSL_CTX_new(method);
     if (ctx == NULL) {
@@ -167,15 +170,12 @@ int main(int argc, char **argv) {
         rem_server_ip = argv[3];
     }
 
-    /* We don't support TOY protocol on the server yet */
-    if (isServer && !isTls)
-        usage();
-
     /* Create context used by both client and server */
     ssl_ctx = create_context(isServer, isTls);
 
     /* If server */
     if (isServer) {
+        BIO *srvrbio;
 
         printf("We are the server on port: %d\n\n", server_port);
 
@@ -184,6 +184,8 @@ int main(int argc, char **argv) {
 
         /* Create server socket; will bind with server port and listen */
         server_skt = create_socket(true, isTls);
+        if (!isTls)
+            srvrbio = BIO_new_dgram(server_skt, BIO_NOCLOSE);
 
         /*
          * Loop to accept clients.
@@ -191,26 +193,34 @@ int main(int argc, char **argv) {
          * before we can catch a CTRL-C and kill the server.
          */
         while (server_running) {
-            /* Wait for TCP connection from client */
-            client_skt = accept(server_skt, (struct sockaddr*) &addr,
-                    &addr_len);
-            if (client_skt < 0) {
-                perror("Unable to accept");
-                exit(EXIT_FAILURE);
+            if (isTls) {
+                /* Wait for TCP connection from client */
+                client_skt = accept(server_skt, (struct sockaddr*) &addr,
+                        &addr_len);
+                if (client_skt < 0) {
+                    perror("Unable to accept");
+                    exit(EXIT_FAILURE);
+                }
+                printf("Client TCP connection accepted\n");
             }
-
-            printf("Client TCP connection accepted\n");
+            /*
+             * else do nothing. For the TOY protocol we just call SSL_accept()
+             * to accept a connection using the main socket
+             */
 
             /* Create server SSL structure using newly accepted client socket */
             ssl = SSL_new(ssl_ctx);
-            SSL_set_fd(ssl, client_skt);
+            if (isTls)
+                SSL_set_fd(ssl, client_skt);
+            else
+                SSL_set_bio(ssl, srvrbio, srvrbio);
 
             /* Wait for SSL connection from the client */
             if (SSL_accept(ssl) <= 0) {
                 ERR_print_errors_fp(stderr);
             } else {
 
-                printf("Client SSL connection accepted\n\n");
+                printf("Client connection accepted\n\n");
 
                 /* Echo loop */
                 while (true) {

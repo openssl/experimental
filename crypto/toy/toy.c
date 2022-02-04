@@ -163,7 +163,7 @@ OSSL_TOY_CONN *OSSL_TOY_CTX_get0_connection(OSSL_TOY_CTX *ctx, uint32_t id)
 }
 
 int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
-                                OSSL_TOY_STREAM **stream)
+                                OSSL_TOY_STREAM **stream, int *isnew)
 {
     int ret;
     OSSL_TOY_PACKET *packet = ossl_toy_packet_new();
@@ -189,6 +189,7 @@ int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
     packet->appdata = packet->data + OSSL_TOY_PACKET_HEADER_SIZE;
     packet->length = ret - OSSL_TOY_PACKET_HEADER_SIZE;
 
+    *isnew = 0;
     *conn = NULL;
     /* Find the connection */
     for (i = 0; i < OSSL_TOY_MAX_TOY_CONNECTIONS; i++) {
@@ -209,6 +210,7 @@ int OSSL_TOY_CTX_process_packet(OSSL_TOY_CTX *ctx, OSSL_TOY_CONN **conn,
             ret = -1;
             goto err;
         }
+        *isnew = 1;
     }
 
     if (ctx->isserver && (*conn)->peer == NULL) {
@@ -254,6 +256,11 @@ int OSSL_TOY_CTX_handle_timeout(struct timeval *nxttimeout, int *havenewtimeout)
     *nxttimeout = timenow;
 
     return 1;
+}
+
+int OSSL_TOY_CTX_is_server(OSSL_TOY_CTX *ctx)
+{
+    return ctx->isserver;
 }
 
 void ossl_toy_conn_free(OSSL_TOY_CONN *conn)

@@ -53,7 +53,7 @@ int toyclient_main(int argc, char **argv)
     struct timeval timeout, *timeoutp = NULL;
     int width;
     fd_set readfds;
-    int i, havenewtimeout;
+    int i, havenewtimeout, isnew;
 
     prog = opt_init(argc, argv, toyclient_options);
     while ((o = opt_next()) != OPT_EOF) {
@@ -215,7 +215,7 @@ opthelp:
         }
 
         if (FD_ISSET(sock, &readfds)) {
-            if (OSSL_TOY_CTX_process_packet(ctx, &conn, &stream) <= 0) {
+            if (OSSL_TOY_CTX_process_packet(ctx, &conn, &stream, &isnew) <= 0) {
                 BIO_printf(bio_err, "Failed processing a packet\n");
                 goto err;
             }

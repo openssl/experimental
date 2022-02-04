@@ -2902,6 +2902,7 @@ int ossl_toy_write(SSL *s, const void *buf, size_t len, size_t *written);
 int ossl_toy_num_ciphers(void);
 long ossl_toy_ctrl(SSL *s, int cmd, long larg, void *parg);
 int ossl_toy_connect(SSL *s);
+int ossl_toy_accept(SSL *s);
 int ossl_toy_renegotiate_check(SSL *s, int initok);
 
 #endif

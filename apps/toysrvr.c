@@ -45,7 +45,7 @@ static int toy_server_cb(int sock, int type, int protocol,
     OSSL_TOY_STREAM *stream;
     unsigned char buf[4097];
     size_t bytesread, byteswritten;
-    int ret = -1;
+    int ret = -1, isnew;
     BIO *rbio = NULL, *wbio = NULL;
 
     rbio = BIO_new_dgram(sock, BIO_NOCLOSE);
@@ -69,7 +69,7 @@ static int toy_server_cb(int sock, int type, int protocol,
     rbio = wbio = NULL;
 
     for (;;) {
-        if (OSSL_TOY_CTX_process_packet(ctx, &conn, &stream) <= 0) {
+        if (OSSL_TOY_CTX_process_packet(ctx, &conn, &stream, &isnew) <= 0) {
             BIO_printf(bio_err, "Failed processing a packet\n");
             goto err;
         }

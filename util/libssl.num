@@ -521,3 +521,4 @@ SSL_set0_tmp_dh_pkey                    521	3_0_0	EXIST::FUNCTION:
 SSL_CTX_set0_tmp_dh_pkey                522	3_0_0	EXIST::FUNCTION:
 SSL_group_to_name                       523	3_0_0	EXIST::FUNCTION:
 TOY_client_method                       ?	3_1_0	EXIST::FUNCTION:
+TOY_server_method                       ?	3_1_0	EXIST::FUNCTION:

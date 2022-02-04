@@ -315,3 +315,41 @@ const SSL_METHOD *TOY_client_method(void)
 
     return &toy_client_method_data;
 }
+
+const SSL_METHOD *TOY_server_method(void)
+{
+    static const SSL_METHOD toy_server_method_data= {
+        TOY_PROTOCOL_VERSION_1,
+        0, /* flags */
+        0, /* mask */
+        ossl_toy_new,
+        ossl_toy_clear,
+        ossl_toy_free,
+        ossl_toy_accept,
+        NULL, /* connect */
+        ossl_toy_read,
+        NULL, /* peek */
+        ossl_toy_write,
+        NULL, /* shutdown*/
+        NULL, /* renegotiate */
+        ossl_toy_renegotiate_check,
+        NULL, /* read_bytes */
+        NULL, /* write_bytes */
+        NULL, /* dispatch_alert */
+        ossl_toy_ctrl,
+        NULL, /* ctx_ctrl */
+        NULL,
+        NULL,
+        NULL,
+        ossl_toy_num_ciphers,
+        NULL,
+        tls1_default_timeout,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        ossl_toy_server_ctx_new
+    };
+
+    return &toy_server_method_data;
+}
