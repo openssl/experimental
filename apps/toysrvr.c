@@ -14,10 +14,12 @@
 #include "progs.h"
 #include "opt.h"
 
+#define TOYPORT "9964"
 
 typedef enum OPTION_choice {
     OPT_COMMON,
     OPT_6,
+    OPT_PORT,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -28,6 +30,8 @@ const OPTIONS toysrvr_options[] = {
 
     OPT_SECTION("Toy Server Options"),
     {"6", OPT_6, '-', "Use IPv6"},
+    {"port", OPT_PORT, 'p',
+     "UDP port to listen on for connections (default is " TOYPORT ")"},
 
     OPT_PROV_OPTIONS,
     {NULL}
@@ -101,6 +105,12 @@ int toysrvr_main(int argc, char **argv)
     OPTION_CHOICE o;
     int ret = 0;
     int socket_family = AF_INET, accept_sock;
+    char *port = OPENSSL_strdup(TOYPORT);
+
+    if (port == NULL) {
+        BIO_printf(bio_err, "Unable to allocate port string\n");
+        goto end;
+    }
 
     prog = opt_init(argc, argv, toysrvr_options);
     while ((o = opt_next()) != OPT_EOF) {
@@ -116,7 +126,16 @@ opthelp:
         case OPT_6:
             socket_family = AF_INET6;
             break;
-
+        case OPT_PORT:
+            OPENSSL_free(port);
+            port = NULL;
+            if (BIO_parse_hostserv(opt_arg(), NULL, &port, BIO_PARSE_PRIO_SERV) < 1) {
+                BIO_printf(bio_err,
+                           "%s: -port argument malformed or ambiguous\n",
+                           port);
+                goto end;
+            }
+            break;
         case OPT_PROV_CASES:
             if (!opt_provider(o))
                 return 1;
@@ -130,10 +149,11 @@ opthelp:
 
     BIO_printf(bio_out, "Toy Server starting\n");
 
-    ret = do_server(&accept_sock, NULL, "9964", socket_family, SOCK_DGRAM, 0,
+    ret = do_server(&accept_sock, NULL, port, socket_family, SOCK_DGRAM, 0,
                     toy_server_cb, NULL, -1, bio_out);
 
     BIO_printf(bio_out, "Toy Server closing down\n");
 
+ end:
     return ret == 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
